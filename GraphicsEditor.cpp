@@ -1,16 +1,16 @@
-#include "Painter.h"
+#include "GraphicsEditor.h"
 
 
-Painter::Painter()
+GraphicsEditor::GraphicsEditor()
 {
 }
 
 
-Painter::~Painter()
+GraphicsEditor::~GraphicsEditor()
 {
 }
 
-void Painter::drawPencil(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS ptsEnd, double zoom)
+void GraphicsEditor::drawPencil(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS ptsEnd, double zoom)
 {
 	MoveToEx(hdc, ptsBegin.x, ptsBegin.y, (LPPOINT)NULL);
 	LineTo(hdc, ptsEnd.x, ptsEnd.y);
@@ -19,7 +19,7 @@ void Painter::drawPencil(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS ptsEnd, dou
 	LineTo(memDC, ptsEnd.x / zoom, ptsEnd.y / zoom);
 }
 
-void Painter::drawLine(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam)
+void GraphicsEditor::drawLine(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam)
 {
 	if (fPrevLine)
 	{
@@ -38,7 +38,7 @@ void Painter::drawLine(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, doub
 	LineTo(hdc, ptsEnd->x, ptsEnd->y);
 }
 
-void Painter::drawRectangle(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam, bool isFill)
+void GraphicsEditor::drawRectangle(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam, bool isFill)
 {
 	if (fPrevLine)
 	{
@@ -56,7 +56,7 @@ void Painter::drawRectangle(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd,
 	Rectangle(hdc, ptsBegin.x, ptsBegin.y, ptsEnd->x, ptsEnd->y);
 }
 
-void Painter::drawEllipse(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam, bool isFill)
+void GraphicsEditor::drawEllipse(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam, bool isFill)
 {
 	if (fPrevLine)
 	{
@@ -75,7 +75,7 @@ void Painter::drawEllipse(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, d
 	Ellipse(hdc, ptsBegin.x, ptsBegin.y, ptsEnd->x, ptsEnd->y);
 }
 
-void Painter::drawCurve(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam)
+void GraphicsEditor::drawCurve(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam)
 {
 	if (fPrevLine)
 	{
@@ -93,7 +93,7 @@ void Painter::drawCurve(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, dou
 	LineTo(hdc, ptsEnd->x, ptsEnd->y);
 }
 
-void Painter::drawPoly(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, POINTS startPointPoly, double zoom, bool fPrevLine, LPARAM lParam)
+void GraphicsEditor::drawPoly(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, POINTS startPointPoly, double zoom, bool fPrevLine, LPARAM lParam)
 {
 	if (fPrevLine)
 	{
@@ -115,25 +115,25 @@ void Painter::drawPoly(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, POIN
 	LineTo(hdc, ptsEnd->x, ptsEnd->y);
 }
 
-void Painter::showScrollBar(HWND hwnd)
+void GraphicsEditor::showScrollBar(HWND hwnd)
 {
 	ShowScrollBar(hwnd, SB_HORZ, TRUE);
 	ShowScrollBar(hwnd, SB_VERT, TRUE);
 }
 
-void Painter::hideScrollBar(HWND hwnd)
+void GraphicsEditor::hideScrollBar(HWND hwnd)
 {
 	ShowScrollBar(hwnd, SB_HORZ, FALSE);
 	ShowScrollBar(hwnd, SB_VERT, FALSE);
 }
 
-void Painter::scrollBarSetParams(HWND hwnd, double zoom)
+void GraphicsEditor::scrollBarSetParams(HWND hwnd, int size)
 {
 	SCROLLINFO scrollInfo;
 	scrollInfo.cbSize = sizeof(SCROLLINFO);
 	scrollInfo.fMask = SIF_ALL;
 	scrollInfo.nMin = 0;
-	scrollInfo.nMax = 1*zoom;
+	scrollInfo.nMax = 1*size;
 	scrollInfo.nPage = 1;
 	SetScrollInfo(hwnd, SB_VERT, &scrollInfo, TRUE);
 	SetScrollInfo(hwnd, SB_HORZ, &scrollInfo, TRUE);

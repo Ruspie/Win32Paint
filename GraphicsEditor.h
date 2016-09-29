@@ -1,11 +1,11 @@
 #pragma once
 #include <Windows.h>
 
-class Painter
+class GraphicsEditor
 {
 public:
-	Painter();
-	~Painter();
+	GraphicsEditor();
+	~GraphicsEditor();
 
 	void drawPencil(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS ptsEnd, double zoom);
 	void drawLine(HDC hdc, HDC memDC, POINTS ptsBegin, POINTS *ptsEnd, double zoom, bool fPrevLine, LPARAM lParam);
@@ -16,6 +16,6 @@ public:
 
 	void hideScrollBar(HWND hwnd);
 	void showScrollBar(HWND hwnd);
-	void scrollBarSetParams(HWND hwnd, double zoom);
+	void scrollBarSetParams(HWND hwnd, int size);
 };
 

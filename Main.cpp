@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
-#include "Painter.h"
+#include "GraphicsEditor.h"
 #include "resource1.h"
 #include "Strsafe.h"
 
@@ -9,9 +9,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int currentId = 0;
 bool flag = FALSE, flagPoly = FALSE, firstLine = TRUE, isFill = FALSE, isPrint = FALSE;
 LPCWSTR openFileName;
-int offsetX = 0, offsetY = 0;
+int offsetX = 0, offsetY = 0, scrollSize = 10, scrollPos = 0;
 double zoom = 1;
-Painter painter;
+GraphicsEditor painter;
 POINTS startPointPoly;
 COLORREF color = RGB(0, 0, 0), colorFill;
 int penWidth = 1;
@@ -64,7 +64,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		AppendMenu(hPopupMenu2, MF_STRING, ID_POLY, L"Poly");
 		AppendMenu(hPopupMenu2, MF_STRING, ID_TEXT, L"Text");
 	}
-	AppendMenu(MainMenu, MF_STRING | MF_POPUP, (UINT)hPopupMenu3, L"Thickness");
+	AppendMenu(MainMenu, MF_STRING | MF_POPUP, (UINT)hPopupMenu3, L"Pen thickness");
 	{
 		AppendMenu(hPopupMenu3, MF_STRING, ID_LINE_1px, L"1px");
 		AppendMenu(hPopupMenu3, MF_STRING, ID_LINE_3px, L"3px");
@@ -164,6 +164,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		case WM_CREATE:
 		{
+			
 			hdc = GetDC(hwnd);
 			hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 			DragAcceptFiles(hwnd, TRUE);
@@ -498,7 +499,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_LBUTTONDOWN:
 		{
-			//OutputDebugStringW(L"LBUTTONDOWN\n");
+			OutputDebugStringW(L"LBUTTONDOWN\n");
 
 			hdc = GetDC(hwnd);
 			SelectObject(hdc, hPen);
@@ -524,7 +525,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_RBUTTONDOWN:
 		{
-			//OutputDebugStringW(L"RBUTTONDOWN\n");
+			OutputDebugStringW(L"RBUTTONDOWN\n");
 
 			hdc = GetDC(hwnd);
 			if (currentId == ID_CURVE)
@@ -635,7 +636,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_LBUTTONUP:
 		{
-			//OutputDebugStringW(L"LBUTTONUP\n");
+			OutputDebugStringW(L"LBUTTONUP\n");
 			hdc = GetDC(hwnd);
 
 			if (currentId < ID_RECT && currentId != 0)
@@ -710,13 +711,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case WM_PAINT:
 		{
-			//OutputDebugStringW(L"PAINT\n");
+			OutputDebugStringW(L"PAINT\n");
 			hdc = GetDC(hwnd);
 			if (currentId == ID_TEXT)
 			{
 				SelectObject(memDC, hfont);
 				TextOut(memDC, ptsBegin.x, ptsBegin.y, (LPCWSTR)text, sizeof(text));
-				ptsBegin.x += 6;
+				if (text[0] != ' ')
+					ptsBegin.x += 6;
 			}
 			StretchBlt(hdc, 0, 0, GetDeviceCaps(hdc, HORZRES)*zoom,
 				GetDeviceCaps(hdc, VERTRES)*zoom, memDC, offsetX, offsetY,
@@ -725,7 +727,52 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		}
 
+		case WM_VSCROLL:
+		{
+			hdc = GetDC(hwnd);
+			OutputDebugStringW(L"SCROLL_VERTICAL\n");
+			switch (LOWORD(wParam))
+			{
+			case SB_LINEUP: offsetY--; break;
+			case SB_LINEDOWN: offsetY++; break;
+			case SB_PAGEUP:  offsetY -= 10; break;
+			case SB_PAGEDOWN: offsetY += 10; break;
+			case SB_THUMBPOSITION: offsetY = HIWORD(wParam); break;
+			}
+			if (offsetY != GetScrollPos(hwnd, SB_VERT))
+			{
+				SetScrollPos(hwnd, SB_VERT, offsetY, TRUE);
+				//MoveWindow(hwnd, offsetX, offsetY, 20, 20, TRUE);
+				StretchBlt(hdc, 0, 0, GetDeviceCaps(hdc, HORZRES)*zoom,
+					GetDeviceCaps(hdc, VERTRES)*zoom, memDC, offsetX, offsetY,
+					GetDeviceCaps(memDC, HORZRES), GetDeviceCaps(memDC, VERTRES), SRCCOPY);
+			}
+			ReleaseDC(hwnd, hdc);
+			break;
+		}
 
+		case WM_HSCROLL:
+		{
+			OutputDebugStringW(L"SCROLL_VERTICAL\n");
+			switch (LOWORD(wParam))
+			{
+			case SB_TOP: offsetX = 0; break;
+			case SB_LINEUP: if (offsetX > 0) offsetX--; break;
+			case SB_LINEDOWN: if (offsetX < scrollSize) offsetX++; break;
+			case SB_PAGEUP:  offsetX -= 5; break;
+			case SB_PAGEDOWN: offsetX += 5; break;
+			case SB_THUMBPOSITION: offsetX = LOWORD(wParam); break;
+			}
+			if (offsetX != GetScrollPos(hwnd, SB_VERT))
+			{
+				SetScrollPos(hwnd, SB_HORZ, offsetX, TRUE);
+				//MoveWindow(hwnd, offsetX, offsetY, 20, 20, TRUE);
+				StretchBlt(hdc, 0, 0, GetDeviceCaps(hdc, HORZRES)*zoom,
+					GetDeviceCaps(hdc, VERTRES)*zoom, memDC, offsetX, offsetY,
+					GetDeviceCaps(memDC, HORZRES), GetDeviceCaps(memDC, VERTRES), SRCCOPY);
+			}
+			break;
+		}
 
 		case WM_MOUSEWHEEL:
 		{
@@ -734,6 +781,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				if (((short)HIWORD(wParam)) < 0)
 				{
+					//if (scrollSize > 5) 
+					//{
+					//	scrollSize -= 5;
+						//painter.scrollBarSetParams(hwnd, 10);
+						//painter.showScrollBar(hwnd);
+
+					//}
 					zoom -= 0.05;
 					if (zoom == 1)
 						painter.hideScrollBar(hwnd);
@@ -741,12 +795,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				}
 				else
 				{
-					zoom += 0.05;					
+					zoom += 0.05;
+					scrollSize += 5;
 					if (zoom <= 1)
 						painter.hideScrollBar(hwnd);
 					else
 					{
-						painter.scrollBarSetParams(hwnd, zoom);
+						painter.scrollBarSetParams(hwnd, 10);
 						painter.showScrollBar(hwnd);
 					}
 					SendMessage(hwnd, WM_PAINT, 0, 0);
@@ -791,11 +846,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					case VK_DOWN: case VK_UP: case VK_DELETE:
 					case VK_SHIFT: case VK_CONTROL: case VK_CAPITAL:
 					case VK_MENU: case VK_TAB: case VK_RETURN:
+					case VK_ESCAPE:
+					
 						break;
 					case VK_BACK:
 					{
 						text[0] = ' ';
-						ptsBegin.x -= 9;
+						ptsBegin.x -= 6;
 						SendMessage(hwnd, WM_PAINT, 0, 0);
 						break;
 					}

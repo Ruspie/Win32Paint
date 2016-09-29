@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Painter.h" />
+    <ClInclude Include="GraphicsEditor.h" />
     <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
@@ -27,7 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Painter.cpp" />
+    <ClCompile Include="GraphicsEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon.ico" />
