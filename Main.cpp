@@ -6,7 +6,7 @@
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-int currentId = 0;
+int currentId = ID_PENCIL;
 bool flag = FALSE, flagPoly = FALSE, firstLine = TRUE, isFill = FALSE, isPrint = FALSE;
 LPCWSTR openFileName;
 int offsetX = 0, offsetY = 0, scrollSize = 10, scrollPos = 0;
@@ -275,7 +275,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					ofn.lpstrFile = (LPWSTR)szFile;
 					ofn.lpstrFile[0] = '\0';
 					ofn.nMaxFile = sizeof(szFile);
-					ofn.lpstrFilter = L"EMF\0*.emf\0";
+					ofn.lpstrFilter = L"EMF\0*.*\0";
 					ofn.nFilterIndex = 1;
 					ofn.lpstrFileTitle = NULL;
 					ofn.nMaxFileTitle = 0;
@@ -756,11 +756,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			OutputDebugStringW(L"SCROLL_VERTICAL\n");
 			switch (LOWORD(wParam))
 			{
-			case SB_TOP: offsetX = 0; break;
-			case SB_LINEUP: if (offsetX > 0) offsetX--; break;
-			case SB_LINEDOWN: if (offsetX < scrollSize) offsetX++; break;
-			case SB_PAGEUP:  offsetX -= 5; break;
-			case SB_PAGEDOWN: offsetX += 5; break;
+			case SB_LINEUP: offsetX--; break;
+			case SB_LINEDOWN: offsetX++; break;
+			case SB_PAGEUP:  offsetX -= 10; break;
+			case SB_PAGEDOWN: offsetX += 10; break;
 			case SB_THUMBPOSITION: offsetX = LOWORD(wParam); break;
 			}
 			if (offsetX != GetScrollPos(hwnd, SB_VERT))
@@ -781,15 +780,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			{
 				if (((short)HIWORD(wParam)) < 0)
 				{
-					//if (scrollSize > 5) 
-					//{
-					//	scrollSize -= 5;
-						//painter.scrollBarSetParams(hwnd, 10);
-						//painter.showScrollBar(hwnd);
+					if (scrollSize > 5) 
+					{
+						scrollSize -= 5;
+						painter.scrollBarSetParams(hwnd, 10);
+						painter.showScrollBar(hwnd);
 
-					//}
+					}
 					zoom -= 0.05;
-					if (zoom == 1)
+					if (zoom <= 1)
 						painter.hideScrollBar(hwnd);
 					SendMessage(hwnd, WM_PAINT, 0, 0);
 				}
